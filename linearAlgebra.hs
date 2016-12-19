@@ -41,15 +41,17 @@ ordered [x] = True
 ordered (x:y:xs)
    | x <= y = ordered (y:xs)
    | otherwise = False
-{-
+
 -- Swaps rows in a Matrix by using the number of zeros
 order :: [[Float]] -> [Float] -> [[Float]]
-
+order a (x:xs)
 
 -- Row A - Row B of multiple x
+-- Pre the rows are same length
 rowReduce :: Float -> [Float] -> [Float] -> [Float]
 rowReduce x a b
--}
+   = zipWith (-) a [x * bs | bs <- b]
+
 -- Finds the number of consecutive zeros in the beginning on a list of numbers
 findConsecutiveZeros :: [Float] -> Float
 findConsecutiveZeros a = findConsecutiveZeros' a 0
