@@ -23,14 +23,24 @@ transpose a
       transpose' a x y
        | x == y = []
        | otherwise = [b !! y | b <- a] : transpose' a x (y + 1)
-{-
--- Reduced row echelon form
+
+-- Converts a matrix to RREF
 rref :: [[Int]] -> [[Int]]
 rref a = rref' a b
    where
      b = [findConsecutiveZeros x | x <- a]
--}
--- Finds number of zeros in a row BEFORE a number
+     rref' :: [[Int]] -> [Int] -> [[Int]]
+     rref' a b
+       | ordered b = rowReduce a b
+       | otherwise = order a b
+
+-- Swaps rows in a Matrix by using the number of zeros
+order :: [[Int]] -> [Int] -> [[Int]]
+
+-- Row A - Row B of multiple x
+rowReduce :: Float -> [Int] -> [Int] -> [Int]
+rowReduce x a b
+
 findConsecutiveZeros :: [Int] -> Int
 findConsecutiveZeros a = findConsecutiveZeros' a 0
    where
