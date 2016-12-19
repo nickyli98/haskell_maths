@@ -23,3 +23,19 @@ transpose a
       transpose' a x y
        | x == y = []
        | otherwise = [b !! y | b <- a] : transpose' a x (y + 1)
+{-
+-- Reduced row echelon form
+rref :: [[Int]] -> [[Int]]
+rref a = rref' a b
+   where
+     b = [findConsecutiveZeros x | x <- a]
+-}
+-- Finds number of zeros in a row BEFORE a number
+findConsecutiveZeros :: [Int] -> Int
+findConsecutiveZeros a = findConsecutiveZeros' a 0
+   where
+     findConsecutiveZeros' :: [Int] -> Int -> Int
+     findConsecutiveZeros' [] x = x
+     findConsecutiveZeros' (x:xs) y
+        | x == 0 = findConsecutiveZeros' xs (y + 1)
+        | otherwise = y
