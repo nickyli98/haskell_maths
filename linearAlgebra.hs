@@ -19,18 +19,14 @@ sumOfProducts :: [Float] -> [Float] -> Float
 sumOfProducts a b
    = sum (zipWith (*) a b)
 
---Tranposes a matrix
-
-{-
 -- Converts a matrix to RREF
 rref :: [[Float]] -> [[Float]]
-rref a = rref' a b
+rref a = rref' (order a b) b
    where
      b = [findConsecutiveZeros x | x <- a]
      rref' :: [[Float]] -> [Float] -> [[Float]]
      rref' a b
-       | ordered b = rowReduce a b
-       | otherwise = order a b
+       | 
 
 --checks if a list os ordered
 ordered :: [Float] -> Bool
@@ -45,10 +41,22 @@ order :: [[Float]] -> [Float] -> [[Float]]
 order a [] = a
 order a x = order' a x (minimum x)
    where
-     order' :: [[Float]] -> [Float] -> Floar
+     order' :: [[Float]] -> [Float] -> Float -> [[Float]]
      order' a x b
-       =
+       = move (findRow x b) a
 
+-- Moves an element around in a list, type not defined in case needs to be used in other types
+move n as = head ts : (hs ++ tail ts)
+   where (hs, ts) = splitAt n as
+
+-- Just a function that finds where an element first occurs in a list, works for floats
+findRow :: [Float] -> Float -> Int
+findRow x y = findRow' x y 0
+   where
+     findRow' [] _ a = a
+     findRow' (x:xs) y a
+        | abs(y - x) < epsilon = a
+        | otherwise = findRow' xs y (a + 1)
 
 -- Row A - Row B of multiple x
 -- Pre the rows are same length
@@ -64,4 +72,4 @@ findConsecutiveZeros a = findConsecutiveZeros' a 0
      findConsecutiveZeros' [] x = x
      findConsecutiveZeros' (x:xs) y
         | x == 0 = findConsecutiveZeros' xs (y + 1)
-        | otherwise = y-}
+        | otherwise = y
