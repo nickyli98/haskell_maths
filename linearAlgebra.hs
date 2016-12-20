@@ -1,3 +1,8 @@
+import Data.List
+
+-- For float ==
+epsilon = 0.00001
+
 -- Pre: the two matrix are multipliable
 matrixProduct :: [[Float]] -> [[Float]] -> [[Float]]
 matrixProduct a b
@@ -15,14 +20,7 @@ sumOfProducts a b
    = sum (zipWith (*) a b)
 
 --Tranposes a matrix
-transpose :: [[Float]] -> [[Float]]
-transpose a
-   = transpose' a (length (head a)) 0
-    where
-      transpose' :: [[Float]] -> Int -> Int -> [[Float]]
-      transpose' a x y
-       | x == y = []
-       | otherwise = [b !! y | b <- a] : transpose' a x (y + 1)
+
 {-
 -- Converts a matrix to RREF
 rref :: [[Float]] -> [[Float]]
@@ -33,7 +31,7 @@ rref a = rref' a b
      rref' a b
        | ordered b = rowReduce a b
        | otherwise = order a b
--}
+
 --checks if a list os ordered
 ordered :: [Float] -> Bool
 ordered [] = True
@@ -44,7 +42,13 @@ ordered (x:y:xs)
 
 -- Swaps rows in a Matrix by using the number of zeros
 order :: [[Float]] -> [Float] -> [[Float]]
-order a (x:xs)
+order a [] = a
+order a x = order' a x (minimum x)
+   where
+     order' :: [[Float]] -> [Float] -> Floar
+     order' a x b
+       =
+
 
 -- Row A - Row B of multiple x
 -- Pre the rows are same length
@@ -60,4 +64,4 @@ findConsecutiveZeros a = findConsecutiveZeros' a 0
      findConsecutiveZeros' [] x = x
      findConsecutiveZeros' (x:xs) y
         | x == 0 = findConsecutiveZeros' xs (y + 1)
-        | otherwise = y
+        | otherwise = y-}
