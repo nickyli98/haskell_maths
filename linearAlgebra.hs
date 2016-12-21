@@ -3,6 +3,10 @@ import Data.List
 -- For float ==
 epsilon = 0.00001
 
+-- Moves an element around in a list, type not defined in case needs to be used in other types
+move n as = head ts : (hs ++ tail ts)
+   where (hs, ts) = splitAt n as
+
 -- Pre: the two matrix are multipliable
 matrixProduct :: [[Float]] -> [[Float]] -> [[Float]]
 matrixProduct a b
@@ -19,43 +23,90 @@ sumOfProducts :: [Float] -> [Float] -> Float
 sumOfProducts a b
    = sum (zipWith (*) a b)
 
--- Converts a matrix to RREF
-rref :: [[Float]] -> [[Float]]
-rref a = rref' (order a b) b
+-- All pivot columns only has one non zero
+-- Assume is already REF
+isRREF :: [[Float]] -> Bool
+isRREF a = isRREF' (transpose a) 0
    where
-     b = [findConsecutiveZeros x | x <- a]
-     rref' :: [[Float]] -> [Float] -> [[Float]]
-     rref' a b
-       | 
+     isRREF' :: [[Float]] -> Int -> Bool
+     isRREF' [] _ = True
+     isRREF' (a:as) x
+        | isNonPivot a x = isRREF' as x
+        | allZeros (take x a) = isRREF' as (x + 1)
+        | otherwise = False
 
---checks if a list os ordered
-ordered :: [Float] -> Bool
-ordered [] = True
-ordered [x] = True
-ordered (x:y:xs)
-   | x <= y = ordered (y:xs)
+-- Checks if its REF all LHS dia 0s
+-- PRE assume its ordered
+isREF :: [[Float]] -> Bool
+isREF a = isREF' (transpose a) 0
+   where
+     isREF' :: [[Float]] -> Int -> Bool
+     isREF' [] _ = True
+     isREF' (a:as) x
+      | x >= (length a) - 1 = True
+      -- once it reaches final row in matrix it is True
+      | (abs(a !! x) < epsilon) = isREF' as x
+      -- next column in matrix if its a non-pivot
+      | allZeros (drop (x + 1) a) = isREF' as (x + 1)
+      | otherwise = False
+
+-- All elements in the list is 0
+allZeros :: [Float] -> Bool
+allZeros [] = True
+allZeros (x:xs)
+  | abs(x) < epsilon = allZeros xs
+  | otherwise = False
+
+-- Check if list is ordeded small to large
+isOrdered :: [Float] -> Bool
+isOrdered [] = True
+isOrdered [x] = True
+isOrdered (x:y:xs)
+   | x <= y = isOrdered (y:xs)
    | otherwise = False
 
+-- Checks if column is non pivot
+isNonPivot :: [Float] -> Int -> Bool
+isNonPivot a x = (abs(a !! x) < epsilon)
+
+-- Converts a matrix to REF (LHS Dia All 0)
+ref :: [[Float]] -> [[Float]]
+ref a = ref' (order a b) b 0 0
+   where
+     b = [findConsecutiveZeros x | x <- a]
+     ref' :: [[Float]] -> [Int] -> Int -> Int -> [[Float]]
+     ref' a b x y
+       | isREF a = a
+       | empty (drop (x + 1) b) x = ref' a b (x + 1) (y + 1)
+       | otherwise = ref' (order ((take (y + 1) a) ++ (ref'' (drop (y + 1) a) x (a !! y))) b) b (x + 1) (y + 1)
+       where
+         -- Checks if all rows (of same col) below are 0s
+         empty :: [Int] -> Int -> Bool
+         empty [] _ = True
+         empty (b:bs) x
+           | b > x = empty bs x
+           | otherwise = False
+         ref'' :: [[Float]] -> Int -> [Float] -> [[Float]]
+         ref'' [] _ _ = []
+         ref'' (a:as) x reference
+            = rowReduce ((reference !! x)/(a !! x)) a reference : ref'' as x reference
+
 -- Swaps rows in a Matrix by using the number of zeros
-order :: [[Float]] -> [Float] -> [[Float]]
+order :: [[Float]] -> [Int] -> [[Float]]
 order a [] = a
 order a x = order' a x (minimum x)
    where
-     order' :: [[Float]] -> [Float] -> Float -> [[Float]]
+     order' :: [[Float]] -> [Int] -> Int -> [[Float]]
      order' a x b
        = move (findRow x b) a
 
--- Moves an element around in a list, type not defined in case needs to be used in other types
-move n as = head ts : (hs ++ tail ts)
-   where (hs, ts) = splitAt n as
-
--- Just a function that finds where an element first occurs in a list, works for floats
-findRow :: [Float] -> Float -> Int
+-- Finds where an element first occurs in a list, works for floats
+findRow :: [Int] -> Int -> Int
 findRow x y = findRow' x y 0
    where
      findRow' [] _ a = a
      findRow' (x:xs) y a
-        | abs(y - x) < epsilon = a
+        | (y - x) == 0 = a
         | otherwise = findRow' xs y (a + 1)
 
 -- Row A - Row B of multiple x
@@ -65,11 +116,11 @@ rowReduce x a b
    = zipWith (-) a [x * bs | bs <- b]
 
 -- Finds the number of consecutive zeros in the beginning on a list of numbers
-findConsecutiveZeros :: [Float] -> Float
+findConsecutiveZeros :: [Float] -> Int
 findConsecutiveZeros a = findConsecutiveZeros' a 0
    where
-     findConsecutiveZeros' :: [Float] -> Float -> Float
+     findConsecutiveZeros' :: [Float] -> Int -> Int
      findConsecutiveZeros' [] x = x
      findConsecutiveZeros' (x:xs) y
-        | x == 0 = findConsecutiveZeros' xs (y + 1)
+        | x < epsilon = findConsecutiveZeros' xs (y + 1)
         | otherwise = y
