@@ -69,6 +69,17 @@ isOrdered (x:y:xs)
 isNonPivot :: [Float] -> Int -> Bool
 isNonPivot a x = (abs(a !! x) < epsilon)
 
+-- Finds all pivot columns of a matrix
+-- Will terminate after finding last pivot column, assume all following columns are false
+findPivots :: [[Float]] -> [Bool]
+findPivots a = findPivots' a 0
+   where
+     findPivots' :: [[Float]] -> Int -> [Bool]
+     findPivots' [] _ = []
+     findPivots' m@(a:as) x
+        | isNonPivot a x = False : findPivots' m (x + 1)
+        | otherwise = True : findPivots' as (x + 1)
+
 -- Converts a matrix to REF (LHS Dia All 0)
 ref :: [[Float]] -> [[Float]]
 ref a = ref' (order a b) b 0 0
@@ -90,6 +101,28 @@ ref a = ref' (order a b) b 0 0
          ref'' [] _ _ = []
          ref'' (a:as) x reference
             = rowReduce ((a !! x)/(reference !! x)) a reference : ref'' as x reference
+
+-- Converts a (REF) matrix to RREF (all pivots only have one non-zero)
+-- Assume is already REF
+rref :: [[Float]] -> [[Float]]
+rref m
+  | isRREF m = m
+  | otherwise = rref' m (findPivots m)
+   where
+     rref' :: [[Float]] -> [Bool]-> [[Float]]
+     rref' [] _ = []
+     rref' m@(a:as) p@(r:rs) = rref'' a p m a 0 0 : rref' as rs
+      where
+        rref'' :: [Float] -> [Bool] -> [[Float]] -> [Float] -> Int -> Int -> [Float]
+        rref'' _ [] _ ori _ _ = ori
+        rref'' (a:as) (p:ps) ref ori counterCol counterRow
+          | allZeros (take counterCol ori) = rref'' as ps ref ori (counterCol + 1) (counterRow + 1)
+          | p && (abs(a) > epsilon) = rref'' as ps ref new (counterCol + 1) (counterRow + 1)
+          | otherwise = rref'' as ps ref ori (counterCol + 1) counterRow
+           where
+             new = rowReduce ((ori !! counterCol)/(rowWithPivot !! counterCol)) ori rowWithPivot
+              where
+                rowWithPivot = (ref !! counterRow)
 
 -- Swaps rows in a Matrix by using the number of zeros
 order :: [[Float]] -> [Int] -> [[Float]]
