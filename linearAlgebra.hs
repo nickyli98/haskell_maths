@@ -89,7 +89,7 @@ ref a = ref' (order a b) b 0 0
          ref'' :: [[Float]] -> Int -> [Float] -> [[Float]]
          ref'' [] _ _ = []
          ref'' (a:as) x reference
-            = rowReduce ((reference !! x)/(a !! x)) a reference : ref'' as x reference
+            = rowReduce ((a !! x)/(reference !! x)) a reference : ref'' as x reference
 
 -- Swaps rows in a Matrix by using the number of zeros
 order :: [[Float]] -> [Int] -> [[Float]]
