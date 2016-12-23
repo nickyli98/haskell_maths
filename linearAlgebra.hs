@@ -111,14 +111,16 @@ rref m
    where
      rref' :: [[Float]] -> [Bool]-> [[Float]]
      rref' [] _ = []
-     rref' m@(a:as) p@(r:rs) = rref'' a p m a 0 0 : rref' as rs
+     rref' m@(a:as) p = rref'' a p m a 0 0 : rref' as p
       where
         rref'' :: [Float] -> [Bool] -> [[Float]] -> [Float] -> Int -> Int -> [Float]
         rref'' _ [] _ ori _ _ = ori
         rref'' (a:as) (p:ps) ref ori counterCol counterRow
-          | allZeros (take counterCol ori) = rref'' as ps ref ori (counterCol + 1) (counterRow + 1)
-          | p && (abs(a) > epsilon) = rref'' as ps ref new (counterCol + 1) (counterRow + 1)
-          | otherwise = rref'' as ps ref ori (counterCol + 1) counterRow
+          | a < epsilon = rref'' as ps ref ori (counterCol + 1) counterRow
+          | not p = rref'' as ps ref ori (counterCol + 1) counterRow      -- Not a pivot column, move on
+          | allZeros (take counterCol ori) = rref'' as ps ref ori (counterCol + 1) (counterRow + 1) -- If its the pivot column of that row, move on
+          | p && (abs(a) > epsilon) = rref'' as ps ref new (counterCol + 1) (counterRow + 1)  -- If its a pivot column, and its non zero. Row reduce
+          | otherwise = rref'' as ps ref ori (counterCol + 1) counterRow  -- dont think this line is ever called. consider removing.
            where
              new = rowReduce ((ori !! counterCol)/(rowWithPivot !! counterCol)) ori rowWithPivot
               where
