@@ -80,6 +80,48 @@ findPivots a = findPivots' a 0
         | isNonPivot a x = False : findPivots' m (x + 1)
         | otherwise = True : findPivots' as (x + 1)
 
+-- Swaps rows in a Matrix by using the number of zeros
+order :: [[Float]] -> [Int] -> [[Float]]
+order a [] = a
+order a x = order' a x (minimum x)
+   where
+     order' :: [[Float]] -> [Int] -> Int -> [[Float]]
+     order' a x b
+       = move (findRow x b) a
+
+-- Finds where an element first occurs in a list, works for floats
+findRow :: [Int] -> Int -> Int
+findRow x y = findRow' x y 0
+   where
+     findRow' [] _ a = a
+     findRow' (x:xs) y a
+        | (y - x) == 0 = a
+        | otherwise = findRow' xs y (a + 1)
+
+-- Row A - Row B of multiple x
+-- Pre the rows are same length
+rowReduce :: Float -> [Float] -> [Float] -> [Float]
+rowReduce x a b
+   = zipWith (-) a [x * bs | bs <- b]
+
+-- Finds the number of consecutive zeros in the beginning on a list of numbers
+findConsecutiveZeros :: [Float] -> Int
+findConsecutiveZeros a = findConsecutiveZeros' a 0
+   where
+     findConsecutiveZeros' :: [Float] -> Int -> Int
+     findConsecutiveZeros' [] x = x
+     findConsecutiveZeros' (x:xs) y
+        | abs(x) < epsilon = findConsecutiveZeros' xs (y + 1)
+        | otherwise = y
+
+-- Takes a row in a matrix, and changes the pivot column to one
+toOne :: [Float] -> [Float]
+toOne a = toOne' a (a !! index)
+   where
+     index = findConsecutiveZeros a
+     toOne' :: [Float] -> Float -> [Float]
+     toOne' a b = [x / b | x <- a]
+
 -- Converts a matrix to REF (LHS Dia All 0)
 ref :: [[Float]] -> [[Float]]
 ref a = ref' (order a b) b 0 0
@@ -126,36 +168,6 @@ rref m
               where
                 rowWithPivot = (ref !! counterRow)
 
--- Swaps rows in a Matrix by using the number of zeros
-order :: [[Float]] -> [Int] -> [[Float]]
-order a [] = a
-order a x = order' a x (minimum x)
-   where
-     order' :: [[Float]] -> [Int] -> Int -> [[Float]]
-     order' a x b
-       = move (findRow x b) a
-
--- Finds where an element first occurs in a list, works for floats
-findRow :: [Int] -> Int -> Int
-findRow x y = findRow' x y 0
-   where
-     findRow' [] _ a = a
-     findRow' (x:xs) y a
-        | (y - x) == 0 = a
-        | otherwise = findRow' xs y (a + 1)
-
--- Row A - Row B of multiple x
--- Pre the rows are same length
-rowReduce :: Float -> [Float] -> [Float] -> [Float]
-rowReduce x a b
-   = zipWith (-) a [x * bs | bs <- b]
-
--- Finds the number of consecutive zeros in the beginning on a list of numbers
-findConsecutiveZeros :: [Float] -> Int
-findConsecutiveZeros a = findConsecutiveZeros' a 0
-   where
-     findConsecutiveZeros' :: [Float] -> Int -> Int
-     findConsecutiveZeros' [] x = x
-     findConsecutiveZeros' (x:xs) y
-        | x < epsilon = findConsecutiveZeros' xs (y + 1)
-        | otherwise = y
+-- Gaussian Elimination
+gauss :: [[Float]] -> [[Float]]
+gauss a = map toOne (rref (ref a))
